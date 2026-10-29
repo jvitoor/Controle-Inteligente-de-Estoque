@@ -3,8 +3,8 @@
 > **🔗 Link do Repositório GitHub:** https://github.com/jvitoor/Controle-Inteligente-de-Estoque.git  
 > **👨‍🏫 Professor:** Cleidson Daniel  
 > **📚 Disciplina:** Desenvolvimento em JavaScript
-> **📚 Aluno: João Vitor Guerra Rodrigues
-> **📚 Curso: Ciência da Computação - 6° Período
+> **📚 Aluno:** João Vitor Guerra Rodrigues
+> **📚 Curso:** Ciência da Computação - 6° Período
 
 ---
 
