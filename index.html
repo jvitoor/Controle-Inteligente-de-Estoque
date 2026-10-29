@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle Inteligente de Estoque</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Cabeçalho do Módulo -->
+    <header class="main-header">
+        <div class="container header-content">
+            <div>
+                <h1>📦 Controle Inteligente de Estoque</h1>
+                <p>Módulo de Gestão, Monitoramento Crítico e Indicadores Patrimoniais</p>
+            </div>
+            <button type="button" id="btn-carregar-exemplos" class="btn btn-outline">
+                Carregar Dados de Exemplo
+            </button>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Área de Mensagens de Feedback (Sucesso / Erro) -->
+        <div id="feedback-container" class="feedback-message hidden" role="alert"></div>
+
+        <!-- Painel de Indicadores (Requisito 4) -->
+        <section class="indicators-grid" aria-label="Indicadores de Estoque">
+            <article class="indicator-card">
+                <span class="indicator-label">Total de Produtos</span>
+                <strong class="indicator-value" id="ind-total-produtos">0</strong>
+                <small>Itens cadastrados no catálogo</small>
+            </article>
+
+            <article class="indicator-card card-danger">
+                <span class="indicator-label">Sem Estoque</span>
+                <strong class="indicator-value" id="ind-sem-estoque">0</strong>
+                <small>Produtos esgotados (Qtd = 0)</small>
+            </article>
+
+            <article class="indicator-card card-warning">
+                <span class="indicator-label">Estoque Crítico</span>
+                <strong class="indicator-value" id="ind-estoque-critico">0</strong>
+                <small>Abaixo ou igual ao mínimo</small>
+            </article>
+
+            <article class="indicator-card card-highlight">
+                <span class="indicator-label">Valor Total Estimado</span>
+                <strong class="indicator-value" id="ind-valor-total">R$ 0,00</strong>
+                <small>Soma patrimonial do estoque</small>
+            </article>
+        </section>
+
+        <!-- Grade Principal: Formulário + Prioridades -->
+        <div class="top-workspace-grid">
+            <!-- Formulário de Cadastro e Edição (Requisito 1 e 2) -->
+            <section class="panel form-panel">
+                <h2 id="form-title">Cadastrar Novo Produto</h2>
+                <form id="product-form" novalidate>
+                    <input type="hidden" id="produto-id">
+
+                    <div class="form-row">
+                        <div class="form-group flex-2">
+                            <label for="produto-nome">Nome do Produto *</label>
+                            <input type="text" id="produto-nome" placeholder="Ex: Monitor LED 24 Pol" required>
+                        </div>
+
+                        <div class="form-group flex-1">
+                            <label for="produto-categoria">Categoria *</label>
+                            <select id="produto-categoria" required>
+                                <option value="">Selecione...</option>
+                                <option value="Eletrônicos">Eletrônicos</option>
+                                <option value="Periféricos">Periféricos</option>
+                                <option value="Informática">Informática</option>
+                                <option value="Móveis">Móveis</option>
+                                <option value="Suprimentos">Suprimentos</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="produto-quantidade">Quantidade em Estoque *</label>
+                            <input type="number" id="produto-quantidade" min="0" step="1" placeholder="Ex: 15" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="produto-minimo">Qtd. Mínima Desejada *</label>
+                            <input type="number" id="produto-minimo" min="1" step="1" placeholder="Ex: 5" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="produto-preco">Preço Unitário (R$) *</label>
+                            <input type="number" id="produto-preco" min="0.01" step="0.01" placeholder="Ex: 899.90" required>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-salvar" class="btn btn-primary">Salvar Produto</button>
+                        <button type="button" id="btn-cancelar-edicao" class="btn btn-secondary hidden">Cancelar Edição</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Top 5 Produtos com Menor Quantidade (Requisito 4) -->
+            <aside class="panel priority-panel">
+                <h2>⚠️ Top 5 Menor Estoque</h2>
+                <p class="panel-subtitle">Produtos prioritários para reposição imediata</p>
+                <ul id="priority-list" class="priority-list">
+                    <!-- Preenchido via JavaScript -->
+                </ul>
+            </aside>
+        </div>
+
+        <!-- Seção de Listagem, Pesquisa, Filtros e Ordenação -->
+        <section class="panel list-panel">
+            <div class="list-header">
+                <h2>Produtos Cadastrados</h2>
+                
+                <!-- Barra de Ferramentas: Pesquisa, Filtros e Ordenação -->
+                <div class="filters-bar">
+                    <div class="filter-item search-box">
+                        <label for="input-pesquisa">Pesquisar por nome</label>
+                        <input type="search" id="input-pesquisa" placeholder="Digite o nome do produto...">
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="filtro-categoria">Categoria</label>
+                        <select id="filtro-categoria">
+                            <option value="TODAS">Todas as categorias</option>
+                            <option value="Eletrônicos">Eletrônicos</option>
+                            <option value="Periféricos">Periféricos</option>
+                            <option value="Informática">Informática</option>
+                            <option value="Móveis">Móveis</option>
+                            <option value="Suprimentos">Suprimentos</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="filtro-situacao">Situação do Estoque</label>
+                        <select id="filtro-situacao">
+                            <option value="TODAS">Todas as situações</option>
+                            <option value="SEM_ESTOQUE">Sem estoque (0)</option>
+                            <option value="CRITICO">Estoque crítico</option>
+                            <option value="NORMAL">Estoque normal</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="ordenar-por">Ordenar por</label>
+                        <select id="ordenar-por">
+                            <option value="NOME_ASC">Nome (A - Z)</option>
+                            <option value="NOME_DESC">Nome (Z - A)</option>
+                            <option value="QTD_ASC">Quantidade (Menor → Maior)</option>
+                            <option value="QTD_DESC">Quantidade (Maior → Menor)</option>
+                            <option value="PRECO_ASC">Preço Unitário (Menor → Maior)</option>
+                            <option value="PRECO_DESC">Preço Unitário (Maior → Menor)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela Responsiva de Produtos -->
+            <div class="table-responsive">
+                <table id="products-table" class="products-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th>Qtd. Atual / Mín.</th>
+                            <th>Preço Unit.</th>
+                            <th>Valor Total</th>
+                            <th>Situação</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-tbody">
+                        <!-- Linhas inseridas dinamicamente pelo JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Estado Vazio (Ausência de resultados ou lista vazia) -->
+            <div id="empty-state" class="empty-state hidden">
+                <p id="empty-state-text">Nenhum produto encontrado.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <p>Módulo Controle Inteligente de Estoque &mdash; Trabalho Individual de JavaScript</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
